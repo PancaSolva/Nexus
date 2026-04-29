@@ -1,0 +1,399 @@
+{
+  "summary_period": {
+    "from": "2026-04-17 02:26:05",
+    "to": "2026-04-17 04:17:26",
+    "generated_at": "2026-04-23T22:55:50.719207"
+  },
+  "overview": {
+    "total_anomalies": 3565,
+    "total_affected_apps": 20,
+    "total_affected_urls": 30,
+    "most_common_http_error": 403,
+    "down_percentage": 13.49
+  },
+  "top_anomalies_API": [
+    "https://www.amd.com (228 anomalies)",
+    "https://www.netflix.com (158 anomalies)",
+    "https://www.twitter.com (156 anomalies)",
+    "https://www.slack.com (125 anomalies)",
+    "https://www.facebook.com (123 anomalies)"
+  ],
+  "affected_apis": [
+    {
+      "id_aplikasi": 19,
+      "url": "https://www.amd.com",
+      "id_service": "18",
+      "anomaly_count": 228,
+      "avg_anomaly_score": -0.65748,
+      "worst_score": -0.71837,
+      "down_count": 228,
+      "http_errors": {},
+      "avg_response_time_ms": -1,
+      "max_consecutive_failures": 3
+    },
+    {
+      "id_aplikasi": 13,
+      "url": "https://www.netflix.com",
+      "id_service": "6",
+      "anomaly_count": 158,
+      "avg_anomaly_score": -0.6404,
+      "worst_score": -0.69119,
+      "down_count": 36,
+      "http_errors": {},
+      "avg_response_time_ms": 4013.52,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 11,
+      "url": "https://www.twitter.com",
+      "id_service": "2",
+      "anomaly_count": 156,
+      "avg_anomaly_score": -0.63868,
+      "worst_score": -0.69119,
+      "down_count": 32,
+      "http_errors": {},
+      "avg_response_time_ms": 3282.6,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 15,
+      "url": "https://www.slack.com",
+      "id_service": "9",
+      "anomaly_count": 125,
+      "avg_anomaly_score": -0.64389,
+      "worst_score": -0.69119,
+      "down_count": 6,
+      "http_errors": {
+        "429": 16
+      },
+      "avg_response_time_ms": 1974.88,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 11,
+      "url": "https://www.facebook.com",
+      "id_service": "1",
+      "anomaly_count": 123,
+      "avg_anomaly_score": -0.64355,
+      "worst_score": -0.69119,
+      "down_count": 20,
+      "http_errors": {},
+      "avg_response_time_ms": 1054.26,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 12,
+      "url": "https://www.instagram.com",
+      "id_service": "3",
+      "anomaly_count": 123,
+      "avg_anomaly_score": -0.64164,
+      "worst_score": -0.69119,
+      "down_count": 12,
+      "http_errors": {},
+      "avg_response_time_ms": 1360.99,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 7,
+      "url": "https://www.wikipedia.org",
+      "id_service": "monolithic",
+      "anomaly_count": 121,
+      "avg_anomaly_score": -0.68026,
+      "worst_score": -0.72139,
+      "down_count": 4,
+      "http_errors": {
+        "403": 117
+      },
+      "avg_response_time_ms": 287.75,
+      "max_consecutive_failures": 7
+    },
+    {
+      "id_aplikasi": 16,
+      "url": "https://www.dropbox.com",
+      "id_service": "11",
+      "anomaly_count": 121,
+      "avg_anomaly_score": -0.64235,
+      "worst_score": -0.69119,
+      "down_count": 12,
+      "http_errors": {},
+      "avg_response_time_ms": 1690.79,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 4,
+      "url": "https://www.cloudflare.com",
+      "id_service": "monolithic",
+      "anomaly_count": 120,
+      "avg_anomaly_score": -0.65898,
+      "worst_score": -0.71837,
+      "down_count": 10,
+      "http_errors": {},
+      "avg_response_time_ms": 1207.61,
+      "max_consecutive_failures": 4
+    },
+    {
+      "id_aplikasi": 15,
+      "url": "https://www.zoom.us",
+      "id_service": "10",
+      "anomaly_count": 120,
+      "avg_anomaly_score": -0.64214,
+      "worst_score": -0.69119,
+      "down_count": 10,
+      "http_errors": {},
+      "avg_response_time_ms": 1149.85,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 3,
+      "url": "https://api.github.com",
+      "id_service": "monolithic",
+      "anomaly_count": 119,
+      "avg_anomaly_score": -0.65728,
+      "worst_score": -0.71837,
+      "down_count": 6,
+      "http_errors": {
+        "403": 71
+      },
+      "avg_response_time_ms": 272.37,
+      "max_consecutive_failures": 3
+    },
+    {
+      "id_aplikasi": 6,
+      "url": "https://www.microsoft.com",
+      "id_service": "monolithic",
+      "anomaly_count": 119,
+      "avg_anomaly_score": -0.64405,
+      "worst_score": -0.72039,
+      "down_count": 4,
+      "http_errors": {},
+      "avg_response_time_ms": 568.99,
+      "max_consecutive_failures": 6
+    },
+    {
+      "id_aplikasi": 13,
+      "url": "https://www.youtube.com",
+      "id_service": "5",
+      "anomaly_count": 119,
+      "avg_anomaly_score": -0.6415,
+      "worst_score": -0.69119,
+      "down_count": 10,
+      "http_errors": {},
+      "avg_response_time_ms": 795.39,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 20,
+      "url": "https://www.samsung.com",
+      "id_service": "19",
+      "anomaly_count": 119,
+      "avg_anomaly_score": -0.64105,
+      "worst_score": -0.69119,
+      "down_count": 7,
+      "http_errors": {
+        "503": 3
+      },
+      "avg_response_time_ms": 790.42,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 17,
+      "url": "https://www.salesforce.com",
+      "id_service": "13",
+      "anomaly_count": 118,
+      "avg_anomaly_score": -0.64158,
+      "worst_score": -0.69119,
+      "down_count": 6,
+      "http_errors": {},
+      "avg_response_time_ms": 1070.02,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 17,
+      "url": "https://www.oracle.com",
+      "id_service": "14",
+      "anomaly_count": 118,
+      "avg_anomaly_score": -0.65897,
+      "worst_score": -0.69119,
+      "down_count": 4,
+      "http_errors": {
+        "403": 114
+      },
+      "avg_response_time_ms": 314.99,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 19,
+      "url": "https://www.nvidia.com",
+      "id_service": "17",
+      "anomaly_count": 118,
+      "avg_anomaly_score": -0.64136,
+      "worst_score": -0.69119,
+      "down_count": 6,
+      "http_errors": {},
+      "avg_response_time_ms": 1040.55,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 5,
+      "url": "https://www.apple.com",
+      "id_service": "monolithic",
+      "anomaly_count": 117,
+      "avg_anomaly_score": -0.64265,
+      "worst_score": -0.71837,
+      "down_count": 10,
+      "http_errors": {},
+      "avg_response_time_ms": 453.33,
+      "max_consecutive_failures": 5
+    },
+    {
+      "id_aplikasi": 14,
+      "url": "https://www.spotify.com",
+      "id_service": "7",
+      "anomaly_count": 117,
+      "avg_anomaly_score": -0.64031,
+      "worst_score": -0.69119,
+      "down_count": 4,
+      "http_errors": {},
+      "avg_response_time_ms": 985.04,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 20,
+      "url": "https://www.sony.com",
+      "id_service": "20",
+      "anomaly_count": 117,
+      "avg_anomaly_score": -0.66143,
+      "worst_score": -0.69119,
+      "down_count": 4,
+      "http_errors": {
+        "403": 113
+      },
+      "avg_response_time_ms": 318.69,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 8,
+      "url": "https://www.amazon.com",
+      "id_service": "monolithic",
+      "anomaly_count": 116,
+      "avg_anomaly_score": -0.64123,
+      "worst_score": -0.71837,
+      "down_count": 5,
+      "http_errors": {},
+      "avg_response_time_ms": 514.65,
+      "max_consecutive_failures": 8
+    },
+    {
+      "id_aplikasi": 1,
+      "url": "https://www.google.com",
+      "id_service": "monolithic",
+      "anomaly_count": 115,
+      "avg_anomaly_score": -0.62909,
+      "worst_score": -0.70118,
+      "down_count": 4,
+      "http_errors": {
+        "429": 20
+      },
+      "avg_response_time_ms": 386.95,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 10,
+      "url": "https://www.linkedin.com",
+      "id_service": "monolithic",
+      "anomaly_count": 115,
+      "avg_anomaly_score": -0.65232,
+      "worst_score": -0.71837,
+      "down_count": 4,
+      "http_errors": {},
+      "avg_response_time_ms": 742.66,
+      "max_consecutive_failures": 10
+    },
+    {
+      "id_aplikasi": 14,
+      "url": "https://www.discord.com",
+      "id_service": "8",
+      "anomaly_count": 115,
+      "avg_anomaly_score": -0.63805,
+      "worst_score": -0.69119,
+      "down_count": 4,
+      "http_errors": {},
+      "avg_response_time_ms": 614.3,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 18,
+      "url": "https://www.ibm.com",
+      "id_service": "15",
+      "anomaly_count": 115,
+      "avg_anomaly_score": -0.64181,
+      "worst_score": -0.69119,
+      "down_count": 6,
+      "http_errors": {},
+      "avg_response_time_ms": 826.82,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 9,
+      "url": "https://www.reddit.com",
+      "id_service": "monolithic",
+      "anomaly_count": 112,
+      "avg_anomaly_score": -0.63404,
+      "worst_score": -0.71837,
+      "down_count": 3,
+      "http_errors": {},
+      "avg_response_time_ms": 299.01,
+      "max_consecutive_failures": 9
+    },
+    {
+      "id_aplikasi": 2,
+      "url": "https://github.com",
+      "id_service": "monolithic",
+      "anomaly_count": 110,
+      "avg_anomaly_score": -0.64093,
+      "worst_score": -0.71618,
+      "down_count": 6,
+      "http_errors": {
+        "403": 2
+      },
+      "avg_response_time_ms": 675.85,
+      "max_consecutive_failures": 2
+    },
+    {
+      "id_aplikasi": 12,
+      "url": "https://www.tiktok.com",
+      "id_service": "4",
+      "anomaly_count": 102,
+      "avg_anomaly_score": -0.62682,
+      "worst_score": -0.69119,
+      "down_count": 8,
+      "http_errors": {},
+      "avg_response_time_ms": 423.35,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 16,
+      "url": "https://www.adobe.com",
+      "id_service": "12",
+      "anomaly_count": 55,
+      "avg_anomaly_score": -0.62879,
+      "worst_score": -0.69119,
+      "down_count": 6,
+      "http_errors": {},
+      "avg_response_time_ms": 640.88,
+      "max_consecutive_failures": 1
+    },
+    {
+      "id_aplikasi": 18,
+      "url": "https://www.intel.com",
+      "id_service": "16",
+      "anomaly_count": 34,
+      "avg_anomaly_score": -0.63074,
+      "worst_score": -0.69119,
+      "down_count": 4,
+      "http_errors": {},
+      "avg_response_time_ms": 483.67,
+      "max_consecutive_failures": 1
+    }
+  ]
+}
