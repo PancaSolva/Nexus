@@ -6,9 +6,8 @@ from config import LOG_DIR, LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS
 
 SUMMARY_DIR = LOG_DIR / "summaries"
 
-# Initialize Groq client
-# Ensure that GROQ_API_KEY is available in the environment variables
-api_key = os.getenv("GROQ_API_KEY")
+# Initialize client
+api_key = os.getenv("API_KEY")
 client = Groq(api_key=api_key) if api_key else None
 
 def get_latest_summary():
@@ -31,7 +30,7 @@ def get_latest_summary():
 def generate_recommendation():
     """Generates actionable recommendations based on the latest anomaly summary."""
     if not client:
-        return {"error": "GROQ_API_KEY not found in environment variables."}
+        return {"error": "API_KEY not found in environment variables."}
         
     summary_data = get_latest_summary()
     if not summary_data:
