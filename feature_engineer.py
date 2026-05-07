@@ -2,66 +2,99 @@
 import pandas as pd
 import numpy as np
 
-features = [
-    'status',
-    'response_time_ms',
-    'http_risk_level',
-    'is_http_error',
-    'rolling_fail_rate',
-    'rolling_avg_response_time',
-    'response_time_deviation',
-    'consecutive_failures'
+FEATURE_COLUMNS = [
+    # Raw behavior
+    'status',               # Kondisi endpoint (UP/DOWN)
+    'response_time_ms',     # Response time (ms)
+    'http_status_code',     # Kode http dari hasil respons
+
+    # Temporal
+    'hour',                 # Terjadinya jam request untuk mengetahui pola harian
+    'day',                  # Menunjukkan hari dalam minggu untuk menangkap pola mingguan
+    'is_weekend',           # Apakah request terjadi di weekend (potensi traffic berbeda)
+
+    # Statistics    
+    'rolling_z_score',      # Seberapa jauh response time saat ini menyimpang dari rata-rata historis
+    'rt_percentile',        # Posisi response time saat ini dibandingkan distribusi historis
+    'rt_rolling_std',       # Apakah response time stabil dalam periode pendek (standard deviation)
+
+    # Sequence
+    'fail_diff',            # Menunjukkan perubahan status kegagalan dibandingkan request sebelumnya untuk mendeteksi lonjakan error.
+    'rt_diff',              # Selisih rt sekarang dengan rt sebelumnya
+    'rt_drift',             # Membandingkan rata-rata jangka pendek dan panjang untuk mendeteksi pergeseran performa.
+
+    # Service
+    'is_monolith',          # Apakah endpoint monolith / microservice
+    'service_median_rt',    # Median rt untuk setiap service
+    'rt_relative'           # Rt relatif terhadap baseline service untuk memahami deviasi performa.
 ]
 
-def build_features(df: pd.DataFrame) -> pd.DataFrame:
-
-    # - Functions -
-    def http_risk(code: int) -> int:
-        if 200 <= code < 300: return 0
-        elif 400 <= code < 500: return 1
-        elif 500 <= code < 600: return 2
-        return 1
-
-    def consecutive_failures(series: pd.Series) -> pd.Series:
-        count = 0
-        result = []
-        for v in series:
-            count = count + 1 if int(v) == 0 else 0
-            result.append(count)
-        return pd.Series(result, index=series.index)
-
-
-    # - Feature Engineering -
+def _prepare_base(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df = df.sort_values(['id_aplikasi', 'checked_at']).reset_index(drop=True)
 
-    # Encode status
+    df['checked_at'] = pd.to_datetime(df['checked_at'], errors='coerce')
+    df = df.dropna(subset=['checked_at'])
+
+    df = df.sort_values(['id_aplikasi', 'id_service', 'checked_at']).reset_index(drop=True)
+
+    df['id_service'] = df['id_service'].fillna('monolithic').astype(str)
+    df['http_status_code'] = df['http_status_code'].fillna(200).astype(int)
+    df['response_time_ms'] = df['response_time_ms'].fillna(-1).astype(int)
+
     df['status'] = df['status'].map({'UP': 1, 'DOWN': 0})
-
-    # Change id_service dtype into str
-    df['id_service'] = df['id_service'].fillna('monolithic')
-    df['id_service'] = df['id_service'].apply(lambda x: str(int(float(x))) if x != 'monolithic' else x)
-
-    # NaN in "response_time_ms", bc of status "DOWN" OR 0
-    df.loc[df["status"] == 0, "response_time_ms"] = -1
-    df["response_time_ms"] = df["response_time_ms"].fillna(-1).astype(int)
-
-    # HTTP risk
-    df['http_risk_level'] = df['http_status_code'].apply(http_risk)
-    df['is_http_error'] = (df['http_status_code'] >= 400).astype(int)
-
-    # Failure status
     df['status_fail'] = 1 - df['status']
 
-    # Rolling features
-    df['rolling_fail_rate'] = df.groupby('id_service')['status_fail'].transform(lambda x: x.rolling(5, min_periods=1).mean())
-    df['rolling_avg_response_time'] = df.groupby('id_service')['response_time_ms'].transform(lambda x: x.rolling(5, min_periods=1).mean())
+    return df
 
-    # Deviation from baseline
-    api_baseline = df.groupby('id_service')['response_time_ms'].transform('mean')
-    df['response_time_deviation'] = df['response_time_ms'] - api_baseline
+def _temporal_features(df: pd.DataFrame) -> pd.DataFrame:
+    df['hour'] = df['checked_at'].dt.hour
+    df['day'] = df['checked_at'].dt.dayofweek
+    df['is_weekend'] = df['day'].isin([5, 6]).astype(int)
+    return df
 
-    # Consecutive failures
-    df['consecutive_failures'] = df.groupby('id_service')['status'].transform(consecutive_failures)
+def _statistical_features(df: pd.DataFrame) -> pd.DataFrame:
+    group = df.groupby('id_service')
 
-    return df, df[features]
+    rolling_mean = group['response_time_ms'].transform(lambda x: x.rolling(5, min_periods=1).mean())
+    rolling_std = group['response_time_ms'].transform(lambda x: x.rolling(5, min_periods=1).std())
+
+    df['rolling_z_score'] = (df['response_time_ms'] - rolling_mean) / (rolling_std + 1e-5)
+    df['rt_percentile'] = group['response_time_ms'].transform(lambda x: x.rank(pct=True))
+    df['rt_rolling_std'] = rolling_std.fillna(0)
+
+    return df
+
+def _sequence_features(df: pd.DataFrame) -> pd.DataFrame:
+    group = df.groupby('id_service')
+
+    df['fail_diff'] = group['status_fail'].diff().fillna(0)
+    df['rt_diff'] = group['response_time_ms'].diff().fillna(0)
+
+    short_mean = group['response_time_ms'].transform(lambda x: x.rolling(5, min_periods=1).mean())
+    long_mean = group['response_time_ms'].transform(lambda x: x.rolling(20, min_periods=1).mean())
+
+    df['rt_drift'] = short_mean - long_mean
+
+    return df
+
+def _service_features(df: pd.DataFrame) -> pd.DataFrame:
+    group = df.groupby('id_service')
+
+    df['is_monolith'] = (df['id_service'] == 'monolithic').astype(int)
+    df['service_median_rt'] = group['response_time_ms'].transform('median')
+    df['rt_relative'] = df['response_time_ms'] / (df['service_median_rt'] + 1e-5)
+
+    return df
+
+def build_features(df: pd.DataFrame) -> pd.DataFrame:
+    df = _prepare_base(df)
+    original_df = df.copy()
+    
+    df = _temporal_features(df)
+    df = _statistical_features(df)
+    df = _sequence_features(df)
+    df = _service_features(df)
+
+    feature_df = df[FEATURE_COLUMNS].fillna(0)
+    
+    return original_df, feature_df

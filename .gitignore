@@ -1,19 +1,26 @@
 # Environment variables
 .env
-*.bat
+.venv/
 
-# Jupyter
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Models (should be generated locally)
+models/*.pkl
+
+# Logs (internal tracking)
+logs/*.json
+logs/*.jsonl
+logs/summaries/*.json
+
+# Jupyter Notebooks & checkpoints
 .ipynb_checkpoints/
 *.ipynb
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# VS Code
+# OS & IDE files
 .vscode/
-
-# OS files
 .DS_Store
 Thumbs.db
+*.bat

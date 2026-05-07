@@ -6,8 +6,9 @@ from typing import Optional, List
 from fastapi import FastAPI, HTTPException
 
 from detector import AnomalyDetector
-from config import ANOMALY_LOG_PATH, FAILED_PAYLOAD_PATH
+from config import ANOMALY_LOG_PATH, FAILED_PAYLOAD_PATH, LOG_DIR
 from engine import generate_recommendation
+import os
 
 # - Helper Function -
 def _log_failed_payload(payload_json: str):
@@ -32,7 +33,7 @@ detector = AnomalyDetector()
 class HealthCheckRecord(BaseModel):
     id_log_monitor: int
     id_aplikasi: int
-    id_service: Optional[float] = None
+    id_service: Optional[str] = None
     url: str
     status: str
     http_status_code: int
@@ -73,10 +74,7 @@ async def get_recommendation():
 async def detect_single(data: HealthCheckRecord):
     try:
         result = detector.detect_single(data.model_dump())
-        return {
-            "threshold": round(float(detector.threshold), 5),
-            **result,
-        }
+        return result
     except Exception as e:
         _log_failed_payload(data.model_dump_json())
         raise HTTPException(status_code=500, detail=str(e))
@@ -108,7 +106,7 @@ async def reload_model():
 
 
 # Clear anomaly log
-@app.delete("/logs/anomalies")
+@app.delete("/clear-logs/anomalies")
 async def clear_anomaly_log():
     try:
         with open(str(ANOMALY_LOG_PATH), "w") as f:
@@ -119,11 +117,27 @@ async def clear_anomaly_log():
 
 
 # Clear failed payloads log
-@app.delete("/logs/failed")
+@app.delete("/clear-logs/failed")
 async def clear_failed_payloads():
     try:
         with open(str(FAILED_PAYLOAD_PATH), "w") as f:
             f.write("")
         return {"message": "Failed payloads cleared."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Clear summaries
+@app.delete("/clear-logs/summaries")
+async def clear_summaries():
+    try:
+        summary_dir = LOG_DIR / "summaries"
+        if summary_dir.exists():
+            count = 0
+            for file in os.listdir(summary_dir):
+                if file.startswith("summary_") and file.endswith(".json"):
+                    os.remove(summary_dir / file)
+                    count += 1
+            return {"message": f"Cleared {count} summaries."}
+        return {"message": "No summaries found."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

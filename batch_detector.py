@@ -1,6 +1,5 @@
 # - Libraries -
 import time
-import pymysql
 import argparse
 import pandas as pd
 
@@ -8,10 +7,11 @@ from detector import AnomalyDetector
 from config import (
     TRAINING_CSV,
     DB_ENABLED,
-    DB_CONFIG,
+    ENGINE,
     FETCH_QUERY,
     FETCH_INTERVAL_SECONDS,
 )
+from sqlalchemy import text
 
 
 # - Detects anomalies from CSV (dev) -
@@ -42,7 +42,10 @@ def detect_csv(detector: AnomalyDetector):
 
         for r in result["results"]:
             if r["is_anomaly"]:
-                print(f"  [!] {r['id_aplikasi']} ({r['url']}) -> score: {r['anomaly_score']}")
+                status_str = "UP" if r["status"] == 1 else "DOWN"
+                service_str = "Monolithic" if r['id_service'] == 'monolithic' else str(r['id_service']).split('.')[0]
+                print(f"  [ 🚨 ANOMALY ] App ID: {r['id_aplikasi']} | Service ID: {service_str} | URL: {r['url']}")
+                print(f"  [ ℹ️  INFO ] Status: {status_str} | HTTP Status Code: {r['http_status_code']} | Response Time: {r['response_time_ms']}ms | Score: {r['anomaly_score']}\n")
 
     print(f"\n{'='*50}")
     print(f"Done. Total anomalies detected: {total_anomalies}")
@@ -60,10 +63,9 @@ def detect_database(detector: AnomalyDetector):
 
     while True:
         try:
-            connection = pymysql.connect(**DB_CONFIG)
-            query = FETCH_QUERY.format(last_id=last_id)
-            df = pd.read_sql(query, connection)
-            connection.close()
+            with ENGINE.connect() as conn:
+                query = FETCH_QUERY.format(last_id=last_id)
+                df = pd.read_sql(text(query), conn)
 
             if df.empty:
                 print(f"[detector] No new records (last_id={last_id}).")
@@ -77,7 +79,10 @@ def detect_database(detector: AnomalyDetector):
 
                 for r in result["results"]:
                     if r["is_anomaly"]:
-                        print(f"  [!] {r['id_aplikasi']} ({r['url']}) -> score: {r['anomaly_score']}")
+                        status_str = "UP" if r["status"] == 1 else "DOWN"
+                        service_str = "Monolithic" if r['id_service'] == 'monolithic' else str(r['id_service']).split('.')[0]
+                        print(f"  [ 🚨 ANOMALY ] App ID: {r['id_aplikasi']} | Service ID: {service_str} | URL: {r['url']}")
+                        print(f"  [ ℹ️  INFO ] Status: {status_str} | HTTP Status Code: {r['http_status_code']} | Response Time: {r['response_time_ms']}ms | Score: {r['anomaly_score']}")
 
         except Exception as e:
             print(f"[detector] Error: {e}")

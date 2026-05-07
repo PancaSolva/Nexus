@@ -36,12 +36,12 @@ def generate_recommendation():
     if not summary_data:
         return {"error": "No anomaly summary found. Please wait for the next summary generation."}
         
-    if summary_data.get("overview", {}).get("total_anomalies", 0) == 0:
+    if summary_data.get("overview", {}).get("total_anomaly_events", 0) == 0:
         return {"message": "No anomalies detected in the last period. System is healthy."}
 
     # Extract relevant parts for the LLM to keep context focused
     overview = summary_data.get("overview", {})
-    top_anomalies = summary_data.get("top_anomalies_API", [])
+    top_anomalies = summary_data.get("top_endpoints", [])
     
     prompt_context = f"Overview:\n{json.dumps(overview, indent=2)}\n\nTop Anomalies:\n{json.dumps(top_anomalies, indent=2)}"
 
@@ -74,7 +74,7 @@ def generate_recommendation():
         steps = [step.strip() for step in raw.split('\n') if step.strip()]
         
         return {
-            "period": summary_data.get("summary_period"),
+            "period": summary_data.get("period"),
             "recommendation": steps
         }
         

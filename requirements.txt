@@ -1,9 +1,11 @@
 fastapi
 uvicorn
-joblib
-scikit-learn
+pydantic
 pandas
 numpy
-groq
+scikit-learn
+joblib
 pymysql
+sqlalchemy
 python-dotenv
+groq

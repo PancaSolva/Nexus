@@ -1,7 +1,5 @@
 # - Libraries -
 import time
-import joblib
-import pymysql
 import argparse
 import numpy as np
 import pandas as pd
@@ -21,18 +19,18 @@ from config import (
     TRAINING_CSV, 
     TRAINING_QUERY,
     DB_ENABLED, 
-    DB_CONFIG,
+    ENGINE,
     RETRAIN_INTERVAL_HOURS
 )
+from sqlalchemy import text
 
 
 # - Functions -
 def fetch_training_data() -> pd.DataFrame:
     if DB_ENABLED:
         try:
-            connection = pymysql.connect(**DB_CONFIG)
-            df = pd.read_sql(TRAINING_QUERY, connection)
-            connection.close()
+            with ENGINE.connect() as conn:
+                df = pd.read_sql(text(TRAINING_QUERY), conn)
             print(f"[retrain] Fetched {len(df)} rows from database.")
             return df
         except Exception as e:
@@ -74,6 +72,7 @@ def retrain_model(detector=None) -> dict:
     threshold = float(np.percentile(scores, THRESHOLD_PERCENTILE))
 
     # Save model, scaler, and threshold
+    import joblib
     joblib.dump(model, str(MODEL_PATH))
     joblib.dump(scaler, str(SCALER_PATH))
     joblib.dump(threshold, str(THRESHOLD_PATH))

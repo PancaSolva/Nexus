@@ -102,6 +102,7 @@ class AnomalyDetector:
                 "status": int(row["status"]),
                 "http_status_code": int(row["http_status_code"]),
                 "response_time_ms": int(row["response_time_ms"]),
+                "threshold": round(float(self.threshold), 5),
                 "anomaly_score": round(float(score), 5),
                 "raw_anomaly": raw_anomaly,
                 "is_anomaly": is_confirmed_anomaly,
@@ -111,13 +112,12 @@ class AnomalyDetector:
 
             results.append(entry)
 
-            # Only log when the state just transitioned to anomaly
-            if state["confirmed"] and is_confirmed_anomaly:
+            # Log every record where the endpoint is in confirmed anomaly state
+            if is_confirmed_anomaly:
                 anomaly_entry = {
                     **entry,
-                    "rolling_fail_rate": round(float(preproc_row["rolling_fail_rate"]), 5),
-                    "rolling_avg_response_time": round(float(preproc_row["rolling_avg_response_time"]), 5),
-                    "consecutive_failures": int(preproc_row["consecutive_failures"]),
+                    "rolling_z_score": round(float(preproc_row["rolling_z_score"]), 5) if "rolling_z_score" in preproc_row else 0.0,
+                    "rt_drift": round(float(preproc_row["rt_drift"]), 5) if "rt_drift" in preproc_row else 0.0,
                     "checked_at": str(row["checked_at"]),
                     "detected_at": datetime.now().isoformat(),
                 }
@@ -130,7 +130,7 @@ class AnomalyDetector:
         return {
             "total": len(results),
             "anomalies_found": sum(1 for r in results if r["is_anomaly"]),
-            "threshold": round(float(self.threshold), 5),
+            "threshold": self.threshold,
             "results": results,
         }
 

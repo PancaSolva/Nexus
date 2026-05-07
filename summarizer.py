@@ -1,22 +1,32 @@
 # - Libraries -
-import os
 import json
 from collections import defaultdict
 from datetime import datetime
 
 from config import (
-    LOG_DIR, 
+    LOG_DIR,
     ANOMALY_LOG_PATH,
 )
 
 SUMMARY_DIR = LOG_DIR / "summaries"
 
+
+def _severity(worst_score: float) -> str:
+    """Rate severity based on worst anomaly score (more negative = worse)."""
+    if worst_score < -0.65:
+        return "critical"
+    elif worst_score < -0.55:
+        return "high"
+    elif worst_score < -0.45:
+        return "medium"
+    return "low"
+
+
 def generate_summary():
-    """Reads the anomaly log, generates a summary, and clears the log."""
-    
-    # Ensure summaries directory exists
+    """Reads the anomaly log, generates an informative summary, and clears the log."""
+
     SUMMARY_DIR.mkdir(exist_ok=True)
-    
+
     # Read the log
     try:
         with open(ANOMALY_LOG_PATH, "r") as f:
@@ -28,129 +38,133 @@ def generate_summary():
         print("[summary] No anomalies to summarize.")
         return None
 
-    # Processing variables
-    first_seen = min(log_data, key=lambda x: x["checked_at"])["checked_at"]
-    last_seen = max(log_data, key=lambda x: x["checked_at"])["checked_at"]
-    generated_at = datetime.now().isoformat()
-    
+    total = len(log_data)
+
+    # --- Aggregate ---
     affected_apps = set()
     affected_urls = set()
-    down_count_total = 0
+    down_count = 0
     http_errors_counter = defaultdict(int)
-    
-    apis_stats = {}
+    hour_counter = defaultdict(int)
+    endpoints = {}
 
     for record in log_data:
         app_id = record["id_aplikasi"]
         url = record["url"]
-        key = f"{app_id}_{url}"
-        
+        key = f"{app_id}|{url}"
+        is_down = record["status"] == 0
+
         affected_apps.add(app_id)
         affected_urls.add(url)
-        
-        if record["status"] == 0:
-            down_count_total += 1
-            
-        if record["http_status_code"] >= 400:
-            http_errors_counter[record["http_status_code"]] += 1
-            
-        if key not in apis_stats:
-            apis_stats[key] = {
+        if is_down:
+            down_count += 1
+
+        http_code = record.get("http_status_code", 0)
+        if http_code >= 400:
+            http_errors_counter[http_code] += 1
+
+        # Track peak hour from checked_at
+        try:
+            checked_dt = datetime.fromisoformat(str(record["checked_at"]))
+            hour_counter[checked_dt.hour] += 1
+        except (ValueError, TypeError):
+            pass
+
+        if key not in endpoints:
+            endpoints[key] = {
                 "id_aplikasi": app_id,
                 "url": url,
-                "id_service": record["id_service"],
+                "id_service": record.get("id_service", ""),
                 "anomaly_count": 0,
-                "scores": [],
                 "down_count": 0,
-                "http_errors": defaultdict(int),
+                "scores": [],
                 "response_times": [],
-                "consecutive_failures": []
+                "rt_drifts": [],
+                "http_errors": defaultdict(int),
             }
-            
-        stats = apis_stats[key]
-        stats["anomaly_count"] += 1
-        stats["scores"].append(record["anomaly_score"])
-        
-        if record["status"] == 0:
-            stats["down_count"] += 1
-            
-        if record["http_status_code"] >= 400:
-            stats["http_errors"][record["http_status_code"]] += 1
-            
-        if record["response_time_ms"] > 0:
-            stats["response_times"].append(record["response_time_ms"])
-            
-        stats["consecutive_failures"].append(record["consecutive_failures"])
 
-    # Format the affected APIs list
-    formatted_apis = []
-    for key, stats in apis_stats.items():
-        avg_score = sum(stats["scores"]) / len(stats["scores"]) if stats["scores"] else 0
-        worst_score = min(stats["scores"]) if stats["scores"] else 0
-        avg_response = sum(stats["response_times"]) / len(stats["response_times"]) if stats["response_times"] else -1
-        max_failures = max(stats["consecutive_failures"]) if stats["consecutive_failures"] else 0
-        
-        formatted_apis.append({
-            "id_aplikasi": stats["id_aplikasi"],
-            "url": stats["url"],
-            "id_service": stats["id_service"],
-            "anomaly_count": stats["anomaly_count"],
-            "avg_anomaly_score": round(avg_score, 5),
-            "worst_score": round(worst_score, 5),
-            "down_count": stats["down_count"],
-            "http_errors": dict(stats["http_errors"]),
-            "avg_response_time_ms": round(avg_response, 2) if avg_response != -1 else -1,
-            "max_consecutive_failures": max_failures
+        ep = endpoints[key]
+        ep["anomaly_count"] += 1
+        ep["scores"].append(record["anomaly_score"])
+        if is_down:
+            ep["down_count"] += 1
+        if http_code >= 400:
+            ep["http_errors"][http_code] += 1
+        rt = record.get("response_time_ms", -1)
+        if rt > 0:
+            ep["response_times"].append(rt)
+        drift = record.get("rt_drift", 0.0)
+        if drift:
+            ep["rt_drifts"].append(drift)
+
+    # --- Format top endpoints ---
+    sorted_eps = sorted(
+        endpoints.values(), key=lambda x: x["anomaly_count"], reverse=True
+    )
+
+    top_endpoints = []
+    for ep in sorted_eps[:5]:
+        scores = ep["scores"]
+        rts = ep["response_times"]
+        drifts = ep["rt_drifts"]
+        worst = min(scores) if scores else None
+        http_err_dict = dict(ep["http_errors"]) or None
+
+        top_endpoints.append({
+            "id_aplikasi": ep["id_aplikasi"],
+            "url": ep["url"],
+            "id_service": ep["id_service"],
+            "severity": _severity(worst) if worst is not None else "unknown",
+            "anomaly_count": ep["anomaly_count"],
+            "down_count": ep["down_count"],
+            "worst_score": round(worst, 5) if worst is not None else None,
+            "avg_score": round(sum(scores) / len(scores), 5) if scores else None,
+            "avg_response_time_ms": round(sum(rts) / len(rts)) if rts else None,
+            "avg_rt_drift_ms": round(sum(drifts) / len(drifts), 2) if drifts else None,
+            "http_errors": http_err_dict,
         })
 
-    # Sort APIs by anomaly count descending
-    formatted_apis.sort(key=lambda x: x["anomaly_count"], reverse=True)
+    # --- Overview ---
+    most_common_error = (
+        max(http_errors_counter, key=http_errors_counter.get)
+        if http_errors_counter else None
+    )
+    peak_hour = (
+        max(hour_counter, key=hour_counter.get) if hour_counter else None
+    )
+    down_pct = round((down_count / total) * 100, 1) if total else 0.0
 
-    # Top anomalies API (Top 5)
-    top_anomalies_api = [
-        f"{api['url']} ({api['anomaly_count']} anomalies)" for api in formatted_apis[:5]
-    ]
-
-    # Most common HTTP error
-    most_common_error = None
-    if http_errors_counter:
-        most_common_error = max(http_errors_counter, key=http_errors_counter.get)
-
-    down_percentage = (down_count_total / len(log_data)) * 100 if log_data else 0
-
-    # Build the final summary
     summary = {
-        "summary_period": {
-            "from": first_seen,
-            "to": last_seen,
-            "generated_at": generated_at
+        "period": {
+            "from": min(r["checked_at"] for r in log_data),
+            "to": max(r["checked_at"] for r in log_data),
+            "generated_at": datetime.now().isoformat(),
         },
         "overview": {
-            "total_anomalies": len(log_data),
-            "total_affected_apps": len(affected_apps),
-            "total_affected_urls": len(affected_urls),
+            "total_anomaly_events": total,
+            "affected_apps": len(affected_apps),
+            "affected_endpoints": len(affected_urls),
+            "down_percentage": down_pct,
             "most_common_http_error": most_common_error,
-            "down_percentage": round(down_percentage, 2)
+            "peak_anomaly_hour": f"{peak_hour:02d}:00" if peak_hour is not None else None,
         },
-        "top_anomalies_API": top_anomalies_api,
-        "affected_apis": formatted_apis
+        "top_endpoints": top_endpoints,
     }
 
-    # Save summary
+    # --- Save ---
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    summary_filename = SUMMARY_DIR / f"summary_{timestamp}.json"
-    
-    with open(summary_filename, "w") as f:
+    summary_path = SUMMARY_DIR / f"summary_{timestamp}.json"
+    with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
-        
-    print(f"[summary] Generated {summary_filename}")
+    print(f"[summary] Saved → {summary_path.name}")
 
-    # Clear the anomaly log
+    # --- Clear anomaly log ---
     with open(ANOMALY_LOG_PATH, "w") as f:
         json.dump([], f)
-    print("[summary] Cleared anomaly_log.json")
+    print("[summary] Anomaly log cleared.")
 
     return summary
+
 
 if __name__ == "__main__":
     generate_summary()

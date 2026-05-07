@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,7 +30,13 @@ DB_CONFIG = {
 }
 
 # Set to True if DB is hosted
-DB_ENABLED = False
+DB_ENABLED = True
+
+# SQLAlchemy Connection String
+DATABASE_URL = f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+
+# Create SQLAlchemy Engine
+ENGINE = create_engine(DATABASE_URL)
 
 # Fetch training data from DB
 TRAINING_QUERY = """
@@ -74,8 +81,8 @@ RETRAIN_SCHEDULE = {
     "minute": "0",
 }
 
-# - Batch Fetching Interval (every 30 seconds) -
-FETCH_INTERVAL_SECONDS = 30
+# - Batch Fetching Interval (every 10 seconds) -
+FETCH_INTERVAL_SECONDS = 10
 
 # - LLM Engine Configuration -
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")

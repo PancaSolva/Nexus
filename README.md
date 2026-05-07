@@ -15,31 +15,31 @@ Detects anomalies in API health monitoring data using **Isolation Forest**.
 1. Raw monitoring data comes in (from CSV or database)
 2. Features are engineered from the raw data (`feature_engineer.py`)
 3. The Isolation Forest model scores each record
-4. If a record scores below the threshold, it gets a **strike**, but it's not flagged yet
-5. Only after **3 consecutive strikes**, the endpoint is confirmed as an anomaly and logged
+4. If a score falls below the threshold, the endpoint gets a **strike** — not flagged yet
+5. After **3 consecutive strikes**, the endpoint is confirmed as anomaly and logged
 6. To recover, the endpoint must pass **3 consecutive normal checks**
-7. Every 12 hours (during retraining), `summarizer.py` groups the anomalies into a summary and clears the log.
-8. The `/recommend` endpoint passes the summary to the Groq LLM (`engine.py`) to generate a technical remediation plan.
+7. During retraining, `summarizer.py` groups the anomaly log into a summary and clears it
+8. The `/recommend` endpoint passes the summary to an LLM (`engine.py`) to generate a remediation plan
 
-This strike system prevents false alarms from temporary lag spikes. Configurable via `CONFIRM_STRIKES` and `RECOVER_STRIKES` in `config.py`.
+> Strikes prevent false alarms from temporary spikes. Configurable via `CONFIRM_STRIKES` and `RECOVER_STRIKES` in `config.py`.
 
 ## Project Structure
 
 | File | What it does |
 |------|-------------|
-| `config.py` | All settings (paths, DB, model params, schedule, LLM configs) |
-| `detector.py` | Core detection engine (used by everything else) |
+| `config.py` | All settings (paths, DB, model params, schedule, LLM) |
+| `detector.py` | Core detection engine |
 | `feature_engineer.py` | Builds features from raw monitoring data |
-| `nexus.py` | FastAPI server with detection and recommendation endpoints |
-| `retrain_scheduler.py` | Retrains the model from CSV or DB (and triggers summarizer) |
+| `nexus.py` | FastAPI server — detection and recommendation endpoints |
 | `batch_detector.py` | Batch detection from CSV (dev) or DB polling (prod) |
-| `summarizer.py` | Groups the 12-hour anomaly logs into a summary JSON |
-| `engine.py` | Interacts with the Groq API (LLM) to generate recommendations |
-| `run.py` | Interactive CLI menu to run any part of the system easily |
+| `retrain_scheduler.py` | Retrains the model and triggers the summarizer |
+| `summarizer.py` | Groups anomaly logs into a compact summary JSON |
+| `engine.py` | Sends the summary to an LLM and returns a remediation plan |
+| `run.py` | Interactive CLI menu to run any part of the system |
 
 ## Setup
 
-1. Copy `.env.example` to `.env` (or create a `.env` file) and fill in your DB credentials and `GROQ_API_KEY`.
+1. Copy `.env.example` to `.env` and fill in your DB credentials and LLM API key.
 2. Install requirements:
 ```bash
 pip install -r requirements.txt
@@ -47,46 +47,33 @@ pip install -r requirements.txt
 
 ## Usage
 
-The easiest way to run any part of the project is using the interactive CLI menu:
+Nexus can be used in two ways:
+
+### Automatic (via CLI)
+
+The recommended way for internal/ops use. Run the interactive menu:
 
 ```bash
 python run.py
 ```
 
-This menu allows you to easily select and run batch detection, interactive single detection, start the API server, or retrain the model.
+From the menu you can run batch detection (CSV or DB), single detection, retrain the model, and manage logs — all from one place.
 
-### Manual Execution
+### API Endpoint (for single payload)
 
-**Start the API server (IMPORTANT: pass the `.env` file so Python can read the API key):**
+For external systems (e.g. Asentinel's backend) that want to push a single record and get a live anomaly verdict. Start the API server:
+
 ```bash
 uvicorn nexus:app --reload --env-file .env
 ```
 
-**Retrain the model:**
-```bash
-python retrain_scheduler.py
-```
-
-**Retrain the model (every 12 hours):**
-```bash
-python retrain_scheduler.py --loop
-```
-
-**Run batch detection from CSV:**
-```bash
-python batch_detector.py
-```
-
-**Run batch detection from DB (when DB is ready):**
-```bash
-python batch_detector.py --poll
-```
+Then send a `POST` request to `/detect` with a single monitoring record. See `NEXUS API DOCUMENTATION.md` for full endpoint reference.
 
 ## Database
 
-The system is ready for database connection. When your DB is hosted:
+When your DB is hosted:
 
 1. Set `DB_ENABLED = True` in `config.py`
-2. Fill in `DB_CONFIG` with your credentials (or use `.env`)
-3. The `log_monitor` table must have these columns (**IMPORTANT** or else the system will fail):
+2. Fill in DB credentials in `.env`
+3. The `log_monitor` table must have these columns:
    `id_log_monitor`, `id_aplikasi`, `id_service`, `url`, `status`, `http_status_code`, `response_time_ms`, `checked_at`, `created_at`, `updated_at`
