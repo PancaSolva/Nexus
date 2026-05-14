@@ -1,0 +1,88 @@
+{
+  "period": {
+    "from": "2026-04-17 02:27:34",
+    "to": "2026-05-14 06:30:06",
+    "generated_at": "2026-05-14T13:35:16.367262"
+  },
+  "overview": {
+    "total_anomaly_events": 3097,
+    "affected_apps": 15,
+    "affected_endpoints": 18,
+    "down_percentage": 63.4,
+    "most_common_http_error": 403,
+    "peak_anomaly_hour": "03:00"
+  },
+  "top_endpoints": [
+    {
+      "id_aplikasi": 13,
+      "url": "https://www.netflix.com",
+      "id_service": "6.0",
+      "severity": "critical",
+      "anomaly_count": 735,
+      "down_count": 33,
+      "worst_score": -0.744,
+      "avg_score": -0.57454,
+      "avg_response_time_ms": 3600,
+      "avg_rt_drift_ms": 3.33,
+      "http_errors": null
+    },
+    {
+      "id_aplikasi": 7,
+      "url": "https://www.wikipedia.org",
+      "id_service": "monolithic",
+      "severity": "high",
+      "anomaly_count": 519,
+      "down_count": 519,
+      "worst_score": -0.63251,
+      "avg_score": -0.56357,
+      "avg_response_time_ms": 157,
+      "avg_rt_drift_ms": -0.73,
+      "http_errors": {
+        "403": 282
+      }
+    },
+    {
+      "id_aplikasi": 17,
+      "url": "https://www.oracle.com",
+      "id_service": "14",
+      "severity": "high",
+      "anomaly_count": 467,
+      "down_count": 467,
+      "worst_score": -0.57836,
+      "avg_score": -0.54327,
+      "avg_response_time_ms": 175,
+      "avg_rt_drift_ms": -1.1,
+      "http_errors": {
+        "403": 232
+      }
+    },
+    {
+      "id_aplikasi": 20,
+      "url": "https://www.sony.com",
+      "id_service": "20.0",
+      "severity": "high",
+      "anomaly_count": 456,
+      "down_count": 456,
+      "worst_score": -0.58239,
+      "avg_score": -0.54336,
+      "avg_response_time_ms": 170,
+      "avg_rt_drift_ms": -0.61,
+      "http_errors": {
+        "403": 227
+      }
+    },
+    {
+      "id_aplikasi": 9,
+      "url": "https://www.reddit.com",
+      "id_service": "monolithic",
+      "severity": "high",
+      "anomaly_count": 321,
+      "down_count": 321,
+      "worst_score": -0.63008,
+      "avg_score": -0.55322,
+      "avg_response_time_ms": null,
+      "avg_rt_drift_ms": -150.91,
+      "http_errors": null
+    }
+  ]
+}

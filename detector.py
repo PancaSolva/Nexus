@@ -97,6 +97,7 @@ class AnomalyDetector:
             entry = {
                 "id_log_monitor": int(row["id_log_monitor"]),
                 "id_aplikasi": int(row["id_aplikasi"]),
+                "nama": str(row["nama"]) if "nama" in row and pd.notna(row["nama"]) else None,
                 "id_service": str(row["id_service"]),
                 "url": str(row["url"]),
                 "status": int(row["status"]),

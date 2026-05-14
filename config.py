@@ -40,7 +40,7 @@ ENGINE = create_engine(DATABASE_URL)
 
 # Fetch training data from DB
 TRAINING_QUERY = """
-    SELECT id_log_monitor, id_aplikasi, id_service, url, 
+    SELECT id_log_monitor, id_aplikasi, nama, id_service, url, 
            status, http_status_code, response_time_ms,
            checked_at, created_at, updated_at
     FROM log_monitor
@@ -48,7 +48,7 @@ TRAINING_QUERY = """
 
 # Fetch new records from DB
 FETCH_QUERY = """
-    SELECT id_log_monitor, id_aplikasi, id_service, url,
+    SELECT id_log_monitor, id_aplikasi, nama, id_service, url,
            status, http_status_code, response_time_ms,
            checked_at, created_at, updated_at
     FROM log_monitor

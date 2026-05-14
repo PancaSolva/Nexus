@@ -1,11 +1,22 @@
-fastapi
-uvicorn
-pydantic
+# Core ML & data
 pandas
 numpy
 scikit-learn
 joblib
+
+# Database
 pymysql
 sqlalchemy
-python-dotenv
+
+# API server & HTTP client
+fastapi
+uvicorn[standard]
+httpx
+pydantic
+pydantic-settings
+
+# LLM
 groq
+
+# Utilities
+python-dotenv

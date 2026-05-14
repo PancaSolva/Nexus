@@ -2,6 +2,8 @@
 import pandas as pd
 import numpy as np
 
+pd.set_option('future.no_silent_downcasting', True)
+
 FEATURE_COLUMNS = [
     # Raw behavior
     'status',               # Kondisi endpoint (UP/DOWN)
@@ -39,8 +41,7 @@ def _prepare_base(df: pd.DataFrame) -> pd.DataFrame:
 
     df['id_service'] = df['id_service'].fillna('monolithic').astype(str)
     df['http_status_code'] = df['http_status_code'].fillna(200).astype(int)
-    df['response_time_ms'] = df['response_time_ms'].fillna(-1).astype(int)
-
+    df['response_time_ms'] = pd.to_numeric(df['response_time_ms'], errors='coerce').fillna(-1).astype(int)
     df['status'] = df['status'].map({'UP': 1, 'DOWN': 0})
     df['status_fail'] = 1 - df['status']
 
